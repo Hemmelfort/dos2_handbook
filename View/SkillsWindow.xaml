@@ -1,0 +1,343 @@
+﻿<Window x:Class="DOS2_Handbook.View.SkillsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DOS2_Handbook.View"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="技能大全" Height="360" Width="800" Icon="pack://application:,,,/Resources/Images/SkillsWindow.png">
+
+    <Window.Resources>
+        <local:ActionPointConverter x:Key="ActionPointConverter"/>
+        <local:IconConverter x:Key="IconConverter"/>
+        <local:SkillPropertyNameConverter x:Key="SkillPropertyNameConverter"/>
+        <local:StatsStringConverter x:Key="StatsStringConverter" x:Name="SelectedStatsStringConverter"/>
+        <local:AbilityStringConverter x:Key="AbilityStringConverter"/>
+        <local:DescriptionStringConverter x:Key="DescriptionStringConverter" x:Name="SelectedDescriptionStringConverter"/>
+        <local:MemoryCostConverter x:Key="MemoryCostConverter"/>
+
+        <Style x:Key="dgtc_ElementStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="8 3 3 3"/>
+        </Style>
+        <Style x:Key="rectMemorySlotBase" TargetType="Rectangle">
+            <Setter Property="Fill" Value="#FFF4F4F5"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Height" Value="12"/>
+            <Setter Property="Stroke" Value="Gray"/>
+            <Setter Property="StrokeDashArray" Value="2 1"/>
+        </Style>
+        <Style x:Key="rectMemorySlot1" TargetType="Rectangle" BasedOn="{StaticResource rectMemorySlotBase}">
+            <Style.Triggers>
+                <DataTrigger Value="true">
+                    <DataTrigger.Binding>
+                        <Binding Path="DataContext.Property[Memory Cost]" RelativeSource="{RelativeSource Self}" Converter="{StaticResource MemoryCostConverter}" ConverterParameter="1"/>
+                    </DataTrigger.Binding>
+                    <Setter Property="Fill" Value="LimeGreen"/>
+                    <Setter Property="Stroke" Value="SlateGray"/>
+                    <Setter Property="StrokeDashArray" Value="{x:Null}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="rectMemorySlot2" TargetType="Rectangle" BasedOn="{StaticResource rectMemorySlotBase}">
+            <Style.Triggers>
+                <DataTrigger Value="true">
+                    <DataTrigger.Binding>
+                        <Binding Path="DataContext.Property[Memory Cost]" RelativeSource="{RelativeSource Self}" Converter="{StaticResource MemoryCostConverter}" ConverterParameter="2"/>
+                    </DataTrigger.Binding>
+                    <Setter Property="Fill" Value="DarkOrange"/>
+                    <Setter Property="Stroke" Value="SlateGray"/>
+                    <Setter Property="StrokeDashArray" Value="{x:Null}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="rectMemorySlot3" TargetType="Rectangle" BasedOn="{StaticResource rectMemorySlotBase}">
+            <Style.Triggers>
+                <DataTrigger Value="true">
+                    <DataTrigger.Binding>
+                        <Binding Path="DataContext.Property[Memory Cost]" RelativeSource="{RelativeSource Self}" Converter="{StaticResource MemoryCostConverter}" ConverterParameter="3"/>
+                    </DataTrigger.Binding>
+                    <Setter Property="Fill" Value="OrangeRed"/>
+                    <Setter Property="Stroke" Value="SlateGray"/>
+                    <Setter Property="StrokeDashArray" Value="{x:Null}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="5*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" MinHeight="120"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <TreeView x:Name="trvSkills" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" BorderThickness="1"
+                  ItemsSource="{Binding SkillTrees}">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <!--http://wpf-tutorial-net.blogspot.com/2013/10/handle-mouse-click-event-on.html-->
+                    <EventSetter Event="MouseLeftButtonUp" Handler="TrvSkills_MouseLeftButtonUp"/>
+                    <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded}"/>
+                    <Setter Property="FontWeight" Value="Normal"/>
+                    <Setter Property="BorderBrush" Value="SteelBlue"/>
+                    <Style.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="LightBlue"/>
+                    </Style.Resources>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <!--<Setter Property="FontWeight" Value="Bold"/>-->
+                            <Setter Property="BorderThickness" Value="1"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </Trigger>
+                        <DataTrigger Binding="{Binding NodeSkill.Property[IsEnemySkill]}" Value="Yes">
+                            <Setter Property="Foreground" Value="IndianRed"/>
+                        </DataTrigger>
+
+                        <!--敌人技能筛选-->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding ElementName=cbShowEnemySkills,Path=IsChecked}" Value="False"/>
+                                <Condition Binding="{Binding NodeSkill.Property[IsEnemySkill]}" Value="Yes"/>
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.Setters>
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </MultiDataTrigger.Setters>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding SubNodes}">
+                    <StackPanel Orientation="Horizontal" Cursor="Hand">
+                        <Image Source="{Binding NodeSkill.Property[Icon],Converter={StaticResource IconConverter}}" Width="36">
+                            <Image.Style>
+                                <Style TargetType="Image">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding NodeSkill}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
+                        <TextBlock Text="{Binding Header,Converter={StaticResource AbilityStringConverter}}"
+                                   Margin="5" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+
+        </TreeView>
+
+        <!--折叠全部按钮-->
+        <Grid Grid.Row="2" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Column="0" x:Name="cbShowEnemySkills" Content="显示敌人技能" IsChecked="False" Margin="5"/>
+            <Button Grid.Column="1" x:Name="btnFoldAll" Content="折叠全部" Margin="5 3" Click="BtnFoldAll_Click">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="2"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+            <TextBlock Grid.Column="3" VerticalAlignment="Center" Margin="10 1" >
+                <Run>作者:</Run>
+                <Hyperlink NavigateUri="https://space.bilibili.com/28399130"
+                           RequestNavigate="Hyperlink_RequestNavigate">Hemmelfort</Hyperlink>
+            </TextBlock>
+        </Grid>
+
+        <GridSplitter Width="5"/>
+
+
+        <!--右上角摘要面板-->
+        <Grid Grid.Row="0" Grid.Column="1" Margin="10 5" ShowGridLines="False"
+              DataContext="{Binding SelectedSkill}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+
+
+            <!--技能图标-->
+            <!--<Viewbox Grid.Row="0" Grid.Column="0" Width="64" Height="64" Grid.RowSpan="4"
+                     Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top"
+                     Margin="10">
+                <Image Source="{Binding Property[Icon],Converter={StaticResource IconConverter}}" ToolTip="{Binding Property[Icon]}"
+                       VerticalAlignment="Bottom"/>
+            </Viewbox>-->
+            <!--技能图标-->
+            <Viewbox Grid.Row="0" Grid.Column="0" Width="64" Height="64" Grid.RowSpan="4"
+                     Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top"
+                     Margin="10">
+            </Viewbox>
+            <Image Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                   Source="{Binding Property[Icon],Converter={StaticResource IconConverter}}" 
+                   VerticalAlignment="Top" HorizontalAlignment="Center"/>
+
+
+            <!--技能名与描述-->
+            <TextBlock Grid.Row="0" Grid.Column="1"
+                       Text="{Binding Property[DisplayName],Converter={StaticResource StatsStringConverter}}"
+                       VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10"
+                       FontSize="16" FontWeight="Bold"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" 
+                       Text="{Binding DataContext.SelectedDescription,ElementName=trvSkills}"
+                       TextWrapping="Wrap" IsReadOnly="True" BorderThickness="1" Background="WhiteSmoke" Padding="10" BorderBrush="Gainsboro" 
+                       VerticalAlignment="Top" HorizontalAlignment="Stretch" Margin="10"/>
+
+            <!--带爪的敌人技能-->
+            <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal"
+                        VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Image Width="24" Height="24">
+                    <Image.Resources>
+                        <system:String x:Key="strEnemySkillIconName">statIcons_ferocity</system:String>
+                    </Image.Resources>
+                    <Image.Source>
+                        <Binding Source="{StaticResource strEnemySkillIconName}" Converter="{StaticResource IconConverter}"/>
+                    </Image.Source>
+                </Image>
+                <TextBlock Text="敌人技能" Foreground="IndianRed" VerticalAlignment="Center"/>
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Hidden"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Property[IsEnemySkill]}" Value="Yes">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+            </StackPanel>
+            
+            <!--记忆槽位-->
+            <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Horizontal" Margin="10 0 0 0">
+                <TextBlock Text="记忆槽位：" VerticalAlignment="Center"/>
+                <Rectangle Style="{StaticResource rectMemorySlot1}"/>
+                <Rectangle Style="{StaticResource rectMemorySlot2}"/>
+                <Rectangle Style="{StaticResource rectMemorySlot3}"/>
+
+                <TextBlock Text="{Binding Property[Memory Cost]}" VerticalAlignment="Center"
+                       TextWrapping="Wrap" Margin="5 0"/>
+            </StackPanel>
+
+            <!--行动点数-->
+            <StackPanel Grid.Row="0" Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right"
+                        ToolTip="行动点数">
+                <ItemsControl ItemsSource="{Binding Property[ActionPoints],Converter={StaticResource ActionPointConverter}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Ellipse Width="12" Height="12" Fill="LimeGreen" Stroke="Green" Margin="2"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemsPanel>   <!--用来呈放Item的面板-->
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+                <!--花费秘源点数-->
+                <ItemsControl ItemsSource="{Binding Property[Magic Cost],Converter={StaticResource ActionPointConverter}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Rectangle Width="10" Height="10" Fill="Aqua" Stroke="DeepSkyBlue" 
+                                           RenderTransformOrigin="0.5,0.5" Margin="3 2">
+                                    <Rectangle.RenderTransform>
+                                        <TransformGroup>
+                                            <RotateTransform Angle="45"/>
+                                        </TransformGroup>
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+
+                <!--无行动点消耗-->
+                <TextBlock>
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="Green"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding Property[ActionPoints]}" Value="0"/>
+                                        <Condition Binding="{Binding Property[Magic Cost]}" Value="0"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <MultiDataTrigger.Setters>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Setter Property="Text" Value="无行动消耗"/>
+                                    </MultiDataTrigger.Setters>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </Grid>
+
+        <!--技能属性表格-->
+        <DataGrid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1" Grid.RowSpan="2"
+                  x:Name="dgSkillProperties"
+                  ItemsSource="{Binding SelectedSkill.Property}"
+                  AutoGenerateColumns="False" ColumnWidth="*" BeginningEdit="DgProperties_BeginningEdit"
+                  HorizontalGridLinesBrush="LightBlue" VerticalGridLinesBrush="LightBlue" MouseDoubleClick="DgSkillProperties_MouseDoubleClick">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Key" Binding="{Binding Key,Converter={StaticResource SkillPropertyNameConverter}}" Width="SizeToCells"
+                                    ElementStyle="{StaticResource dgtc_ElementStyle}">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="ToolTip" Value="{Binding Key}"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Value" Binding="{Binding Value}"
+                                    ElementStyle="{StaticResource dgtc_ElementStyle}">
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="复制" Click="CopyMenuItem_Click"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+            <DataGrid.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="DodgerBlue"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="White"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="LightSkyBlue"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="White"/>
+            </DataGrid.Resources>
+        </DataGrid>
+
+        <StatusBar Grid.Row="3" Grid.ColumnSpan="2" Visibility="Collapsed">
+            <StatusBarItem Content="{Binding DebugMessage}" />
+        </StatusBar>
+
+    </Grid>
+
+</Window>
